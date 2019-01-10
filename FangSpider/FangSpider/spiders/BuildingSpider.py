@@ -17,8 +17,7 @@ import json
 import scrapy
 import pymongo
 from scrapy.conf import settings
-from urllib import parse
-from FangSpider.items import ToBeClean_ProjectItem,BuildingItem
+from FangSpider.items import HouseItem
 
 
 class FangSpider(scrapy.Spider):
@@ -29,7 +28,7 @@ class FangSpider(scrapy.Spider):
     host = settings["MONGODB_HOST"]
     port = settings["MONGODB_PORT"]
     dbname = settings["MONGODB_DBNAME"]
-        # 创建MONGODB数据库链接
+    # 创建MONGODB数据库链接
     client = pymongo.MongoClient(host=host, port=port)
     # 指定数据库
     mydb = client[dbname]
@@ -43,21 +42,54 @@ class FangSpider(scrapy.Spider):
                 'project_id': c['project_id'],
                 'building_id': c['building_id']
             }
-            yield scrapy.Request(url= self.domain + c['source_url'],meta=meta_data, callback=self.parse_branch)
+            yield scrapy.Request(url=self.domain + c['source_url'], meta=meta_data, callback=self.parse_branch)
 
     # 解析座号
     def parse_branch(self, response):
-        branchName=[]
+        branchName = []
         branch_item = response.css('#divShowBranch a')
         for sel in branch_item:
-            branchName.append(sel.css('::text').extract_first().replace('[','').replace(']',''))
-        branchName.append(response.css('#divShowBranch font::text').extract_first().replace('[','').replace(']',''))
+            branchName.append(sel.css('::text').extract_first().replace(
+                '[', '').replace(']', ''))
+        branchName.append(response.css(
+            '#divShowBranch font::text').extract_first().replace('[', '').replace(']', ''))
 
         for _item in branchName:
-            yield scrapy.Request(url= response.url+"&Branch="+_item,meta=response.meta, callback=self.parse_house)
+            response.meta['unit_name'] = _item
+            yield scrapy.Request(url=response.url+"&Branch="+_item, meta=response.meta, callback=self.parse_house_url)
         pass
 
-    #解析房号
-    def parse_house(self, response):
-        print(response.url)
+    # 解析房号
+    def parse_house_url(self, response):
+        house_url_item = response.css('#divShowList a')
+        for sel in house_url_item:
+            yield scrapy.Request(url=self.domain + str(sel.css('::attr(href)').extract_first()), meta=response.meta, callback=self.parse_house_detail)
         pass
+
+    def parse_house_detail(self, response):
+        project_id = response.meta['project_id']
+        building_id = response.meta['building_id']
+        unit_name = response.meta['unit_name']
+        tr_item = response.css('.a1')
+        item = HouseItem()
+        item['house_id'] = response.url.split('=')[-1]
+        item['project_id'] = project_id
+        item['building_id'] = building_id
+        item['unit_name'] = unit_name
+        item['house_name'] = ''.join(tr_item.css(
+            'td:contains("房号") + td::text').extract_first().split())
+        item['floor_no'] = ''.join(tr_item.css(
+            'td:contains("楼层") + td::text').extract_first().split())
+        item['house_purpose'] = ''.join(tr_item.css(
+            'td:contains("用途") + td::text').extract_first().split())
+        item['build_area'] = tr_item.css(
+            'td:contains("建筑面积") + td::text').extract_first()
+        item['indoor_area'] = tr_item.css(
+            'td:contains("户内面积") + td::text').extract_first()
+        item['share_area'] = tr_item.css(
+            'td:contains("分摊面积") + td::text').extract_first()
+        item['price'] = tr_item.css(
+            'td:contains("备案价格") + td::text').extract_first().replace('\r','').replace('\t','').replace('\n','')
+        item['contract_no'] = "".join(tr_item.css(
+            'td:contains("合同号") + td::text').extract_first().split()).replace('\r','').replace('\t','').replace('\n','')
+        return item

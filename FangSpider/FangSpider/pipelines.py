@@ -23,6 +23,7 @@ class FangspiderPipeline(object):
         # 存放数据的数据库表名
         self.projects = mydb['projects']
         self.buildings = mydb['buildings']
+        self.houses = mydb['houses']
 
     def process_item(self, item, spider):
         if(spider.name=='project_spider'):
@@ -40,6 +41,13 @@ class FangspiderPipeline(object):
                     self.buildings.update({"building_id":buildingItem['building_id']},dict(buildingItem))
                 else:
                     self.buildings.insert(dict(buildingItem))
+        elif(spider.name=='building_spider'):
+            #处理房号
+            dict_data=dict(item)
+            if(self.houses.find({'house_id':item['house_id']}).count() > 0):
+                self.houses.update({"house_id":item['house_id']},dict_data)
+            else:
+                self.houses.insert(dict_data)
         return item
 
     def spider_closed(self, spider):

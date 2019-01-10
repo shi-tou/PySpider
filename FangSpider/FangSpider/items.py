@@ -54,3 +54,20 @@ class BuildingItem(scrapy.Item):
     building_construction_permit_no=scrapy.Field()# 建筑工程施工许可证
     source_url = scrapy.Field()
     pass
+
+class HouseItem(scrapy.Item):
+    project_id = scrapy.Field()#楼盘id
+    building_id = scrapy.Field()#楼栋id
+    house_id = scrapy.Field()#房号id
+    unit_name = scrapy.Field()#单元
+    house_name = scrapy.Field()#房号名
+    floor_no = scrapy.Field()#楼层
+    house_purpose = scrapy.Field()#用途
+    build_area = scrapy.Field()#建筑面积
+    indoor_area = scrapy.Field()#户内面积
+    share_area = scrapy.Field()#分摊面积
+    price = scrapy.Field()#价格
+    contract_no = scrapy.Field()#合同号
+    state = scrapy.Field()#状态
+    source_url = scrapy.Field()
+    pass

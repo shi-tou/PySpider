@@ -26,7 +26,7 @@ class ArticleSpider(scrapy.Spider):
 
     def start_requests(self):
         urls = []
-        for i in range(1, 2):
+        for i in range(1, 200):
             urls.append("https://www.cnblogs.com/sitehome/p/"+str(i))
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
