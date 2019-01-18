@@ -16,60 +16,80 @@
 
 
 import scrapy
-import re
-from BooksSpider.items import BooksItem
+import pymongo
+from scrapy.conf import settings
+from BooksSpider.items import BookChapterItem
+
 
 class BookInfoSpider(scrapy.Spider):
     name = "book_chapter_spider"
-    allowed_domains = ["zongheng.com"]
+    allowed_domains = ["zongheng.com", '17k.com']
+    domain_for_zongheng = 'http://hao123.zongheng.com'
+    domain_for_17k = 'http://www.17k.com'
+    host = settings["MONGODB_HOST"]
+    port = settings["MONGODB_PORT"]
+    dbname = settings["MONGODB_DBNAME"]
+    # 创建MONGODB数据库链接
+    client = pymongo.MongoClient(host=host, port=port)
+    # 指定数据库
+    mydb = client[dbname]
+    # 存放数据的数据库表名
+    book_info = mydb['book_info']
 
     def start_requests(self):
-        urls = []
-        for i in range(1, 1000):
-            urls.append(
-                "http://hao123.zongheng.com/store/c0/w0/s2/p" + str(i) + "/free.html")
-        for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse_book_url)
-    # 解析书地址
+        book_infos = self.book_info.find(
+            {}, {'book_id': 1, 'book_chapter_url': 1})
+        for info in book_infos:
+            chapter_list_url = info['book_chapter_url']
+            print('chapter_list_url->'+chapter_list_url)
+            meta_data = {
+                'book_id': info['book_id']
+            }
+            if 'zongheng.com' in chapter_list_url:
+                # yield scrapy.Request(url=chapter_url, meta=meta_data, callback=self.parse_chapter_url_for_17k)
+                pass
+            elif '17k' in chapter_list_url:
+                yield scrapy.Request(url= chapter_list_url, meta=meta_data, callback=self.parse_chapter_url_for_17k)
+                pass
 
-    def parse_book_url(self, response):
-        book_url_item = response.css('.infos>h2>a::attr(href)').extract()
-        for sel in book_url_item:
-            yield scrapy.Request(url=sel, callback=self.parse_book_info)
+    # 解析章节地址-17k
+    def parse_chapter_url_for_17k(self, response):
+        volume_item = response.css('.Volume')
+        for sel_volume in volume_item:
+            volume_name = sel_volume.css('.tip::text').extract_first()
+            response.meta['volume_name'] = volume_name
+            chapter_item = sel_volume.css('dd>a::attr(href)').extract()
+            for chapter_url in chapter_item:
+                print('chapter_url->'+chapter_url)
+                yield scrapy.Request(url=self.domain_for_17k + chapter_url, meta=response.meta, callback=self.parse_chapter_info_for_17k)
         pass
-    # 解析书信息
 
-    def parse_book_info(self, response):
-        item = BooksItem()
-        item['book_id'] = response.url.split('/')[-1].replace('.html', '')
-        # 书名
-        item['book_name'] = response.css(
-            '.book_infos>h1>a::text').extract_first()
-        # 作者
-        item['book_author'] = response.css(
-            '.binfos>span:nth-child(1)>a::text').extract_first()
-        # 类别
-        item['book_type_name'] = response.css(
-            '.binfos>span:nth-child(2)>a::text').extract_first()
+     # 解析章节地址-zongzeng
+    def parse_chapter_url_for_zongheng(self, response):
+        volume_item = response.css('.Volume')
+        for sel_volume in volume_item:
+            volume_name = sel_volume.css('.tip::text').extract_first()
+            response.meta['volume_name'] = volume_name
+            chapter_item = sel_volume.css('dd')
+            for sel_chapter in chapter_item:
+                chapter_url = sel_chapter.css('a::attr(href)').extract_first()
+                yield scrapy.Request(url=chapter_url, meta=response.meta, callback=self.parse_chapter_info_for_zongheng)
+        pass
 
-        # 封面图片
-        item['book_image_url'] = response.css(
-            '.book_face img::attr(src)').extract_first()
-        # 简介
-        item['book_summary'] = response.css(
-            '.cons_all::attr(title)').extract_first()
-        # 简介地址
-        item['book_summary_url'] = response.url
-        # 总字数
-        item['book_word_count'] = response.css(
-            '.binfos>span:nth-child(5)>b::text').extract_first()
-        # 章节地址
-        item['book_chapter_url'] = response.css(
-            '.book_infos>h1>a::attr(href)').extract_first()
-        # 来源站点名称
-        item['source_site_name'] = response.css(
-            '.binfos>span:nth-child(3)>a::text').extract_first()
-        # 来源站点地址
-        item['source_site_url'] = response.css(
-            '.binfos>span:nth-child(3)>a::attr(href)').extract_first()
+    # 解析书信息-17k
+    def parse_chapter_info_for_17k(self, response):
+        item = BookChapterItem()
+        item['book_id'] = response.meta['book_id']
+        item['chapter_volume_name'] = response.meta['volume_name']
+        item['chapter_id'] = response.url.split('/')[-1].replace('.html', '')
+        item['chapter_name'] = ''.join(response.css(
+            '.readAreaBox h1::text').extract_first().split()).replace('\r', '').replace('\n', '')
+        item['chapter_content'] = ''.join(response.css('.readAreaBox .p::text').extract())
+        item['chapter_url'] = response.url
+        return item
+
+    # 解析书信息-zongheng
+    def parse_chapter_info_for_zongheng(self, response):
+        item = BookChapterItem()
+
         return item

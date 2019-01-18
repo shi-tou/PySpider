@@ -32,5 +32,7 @@ class BooksspiderPipeline(object):
             if(self.book_info.find({'book_id': item['book_id']}).count() == 0):
                 self.book_info.insert(dict(item))
         elif(spider.name=='book_chapter_spider'):
+            if(self.book_chapter.find({'chapter_id': item['chapter_id']}).count() == 0):
+                self.book_chapter.insert(dict(item))
             pass
         return item

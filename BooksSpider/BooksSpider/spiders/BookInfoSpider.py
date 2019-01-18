@@ -16,34 +16,23 @@
 
 
 import scrapy
-import pymongo
-from scrapy.conf import settings
+import re
+from BooksSpider.items import BooksInfoItem
 
 class BookInfoSpider(scrapy.Spider):
     name = "book_info_spider"
     allowed_domains = ["zongheng.com"]
-    host = settings["MONGODB_HOST"]
-    port = settings["MONGODB_PORT"]
-    dbname = settings["MONGODB_DBNAME"]
-    # 创建MONGODB数据库链接
-    client = pymongo.MongoClient(host=host, port=port)
-    # 指定数据库
-    mydb = client[dbname]
-    # 存放数据的数据库表名
-    book_info = mydb['book_info']
 
     def start_requests(self):
         urls = []
-        book_infos=self.book_info.find({})
-
-        for info in book_infos:
-            if 'zongheng.com' in info['book_chapter_url']:
-                urls.append(info['book_chapter_url'])
+        for i in range(1, 1000):
+            urls.append(
+                "http://hao123.zongheng.com/store/c0/w0/s2/p" + str(i) + "/free.html")
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse_chapter_url)
-    
-    # 解析章节地址
-    def parse_chapter_url(self, response):
+            yield scrapy.Request(url=url, callback=self.parse_book_url)
+    # 解析书地址
+
+    def parse_book_url(self, response):
         book_url_item = response.css('.infos>h2>a::attr(href)').extract()
         for sel in book_url_item:
             yield scrapy.Request(url=sel, callback=self.parse_book_info)
