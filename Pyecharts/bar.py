@@ -1,17 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-"""
-    Bar：柱状/条形图，通过柱形的高度/条形的宽度来表现数据的大小。
-    1、user_theme('dark')
-    pyecharts 支持更换主体色系
-    2、add()
-    主要方法，用于添加图表的数据和设置各种配置项
-    3、print_echarts_options()
-    打印输出图表的所有配置项
-    4、render()
-    默认将会在根目录下生成一个 render.html 的文件，支持 path 参数，设置文件保存位置，如 render(r"e:\my_first_chart.html")，文件用浏览器打开。
-
-"""
 from pyecharts import Bar
 
 
@@ -25,4 +13,5 @@ def iniBar():
 
 
 def __main__():
+    print('dddddddddddd')
     iniBar()
