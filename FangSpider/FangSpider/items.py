@@ -7,67 +7,26 @@
 
 import scrapy
 
-class ProjectResponseItem(scrapy.Item):
-    scrapy.Field()
 
 class ProjectItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     project_id = scrapy.Field()
     project_name = scrapy.Field()
-    project_developer = scrapy.Field()
-    pre_sale_permit_number = scrapy.Field()
-    approval_time = scrapy.Field()
-    approval_department = scrapy.Field()
-    land_no = scrapy.Field()
-    land_address = scrapy.Field()
-    contract_no = scrapy.Field()
-    usable_year = scrapy.Field()
-    house_purpose = scrapy.Field()
-    land_purpose = scrapy.Field()
-    land_area = scrapy.Field()
-    building_area = scrapy.Field()
-    pre_sale_total_number = scrapy.Field()
-    pre_sale_total_area = scrapy.Field()
-    city_name = scrapy.Field()
-    area_name = scrapy.Field()
-    property_company_name = scrapy.Field()
-    property_fee = scrapy.Field()
-    phone1 = scrapy.Field()
-    phone2 = scrapy.Field()
-    lng = scrapy.Field()
-    lat = scrapy.Field()
-    update_time = scrapy.Field()
-    source_name = scrapy.Field()
-    source_url = scrapy.Field()
-    pass
-
-class ToBeClean_ProjectItem(ProjectItem):
-    building_data = scrapy.Field()
-    pass
-
-class BuildingItem(scrapy.Item):
-    project_id = scrapy.Field()#楼盘id
-    building_id = scrapy.Field()#楼栋id
-    building_name=scrapy.Field()#楼栋名
-    building_planning_permit_no=scrapy.Field()# 建设工程规划许可证
-    building_construction_permit_no=scrapy.Field()# 建筑工程施工许可证
-    source_url = scrapy.Field()
-    pass
-
-class HouseItem(scrapy.Item):
-    project_id = scrapy.Field()#楼盘id
-    building_id = scrapy.Field()#楼栋id
-    house_id = scrapy.Field()#房号id
-    unit_name = scrapy.Field()#单元
-    house_name = scrapy.Field()#房号名
-    floor_no = scrapy.Field()#楼层
-    house_purpose = scrapy.Field()#用途
-    build_area = scrapy.Field()#建筑面积
-    indoor_area = scrapy.Field()#户内面积
-    share_area = scrapy.Field()#分摊面积
-    price = scrapy.Field()#价格
-    contract_no = scrapy.Field()#合同号
-    state = scrapy.Field()#状态
-    source_url = scrapy.Field()
+    feature = scrapy.Field()  # 特色
+    purpose = scrapy.Field()  # 楼盘用途
+    avg_price = scrapy.Field()  # 均价
+    fitment = scrapy.Field()  # 装修
+    developer = scrapy.Field()  # 开发商
+    property_company = scrapy.Field()  # 物业公司
+    city_id = scrapy.Field()  # 城市id
+    area = scrapy.Field()  # 行政区
+    address = scrapy.Field()
+    lng = scrapy.Field()  # 经度
+    lat = scrapy.Field()  # 纬度
+    total_house_count = scrapy.Field()  # 总户数
+    land_area = scrapy.Field()  # 占地面积
+    building_area = scrapy.Field()  # 建筑面积
+    green_rate = scrapy.Field()  # 绿化率
+    plot_rate = scrapy.Field()  # 容积率
     pass
