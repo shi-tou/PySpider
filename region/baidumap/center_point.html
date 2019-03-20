@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>获取地区轮廓线</title>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>
+    <script type="text/javascript" src='FileSaver.js'></script>
+    <script type="text/javascript" src='citydata.js'></script>
+    <style type="text/css">
+
+        body {
+            font-size: 13px;
+            margin: 10px
+        }
+
+        #container {
+            width: 800px;
+            height: 500px;
+            border: 1px solid gray
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="event_descr"></div>
+    <br />输入省、直辖市或县名称：
+    <input type="text" id="districtName" style="width:80px" value="桂林市">
+    <input type="button" onclick="getBoundary1()" value="获取轮廓线">
+    <script type="text/javascript">
+
+        var downloadTextFile = function (name,content) {
+            var file = new File([content], name +".txt", { type: "text/plain;charset=utf-8" });
+            saveAs(file);
+        }
+
+        var map = new BMap.Map("container");
+        // map.centerAndZoom(new BMap.Point(116.403765, 39.914850), 5);
+        // map.addControl(new BMap.NavigationControl({
+        //     type: BMAP_NAVIGATION_CONTROL_SMALL
+        // }));
+        // map.enableScrollWheelZoom();
+        
+        if (baidu_point && baidu_point.length > 0) {
+            var html='';
+            for (var i = 0, n = province.length; i < n; i++) {
+                var c = province[i];
+                html+='<option value="'+ province[i] +'">'+ province[i] +'</option>'
+                //调用api获取行政区坐标集
+                //getBoundary(c); 
+            }
+            alert(html);
+        }
+
+        function getBoundary(name) {
+            var bdary = new BMap.Boundary();
+            bdary.get(name, function (rs) { //获取行政区域
+                var len=rs.boundaries.length;
+                var pointArr=[];
+                for(var i=0;i<len;i++){
+                    pointArr.push(rs.boundaries[i])
+                }
+                downloadTextFile(name,pointArr.join('|'))
+            });
+        }
+        // function getBoundary1() {
+        //     cityName='广东省';
+        //     var bdary = new BMap.Boundary();
+        //     bdary.get(cityName, function (rs) { //获取行政区域
+        //         var len=rs.boundaries[0].length;
+        //         var point='';
+        //         for(var i=0;i<len;i++){
+        //             if(point!='')
+        //                 point+='|';
+        //             point+=rs.boundaries[0];
+        //         }
+        //         downloadTextFile(cityName,rs.boundaries[0])
+        //     });
+        // }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>获取地区轮廓线</title>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=VB0wMPoK4HWQfiSgZ5YXMws7ghZRsNj2&s=1"></script>
+    <style type="text/css">
+        body {
+            font-size: 13px;
+            margin: 10px
+        }
+
+        #container {
+            width: 800px;
+            height: 500px;
+            border: 1px solid gray
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="event_descr"></div>
+    <br />输入边界数据：
+    <textarea id="boundaries" style="width:500px;height:50px;"></textarea>
+    <input type="button" onclick="setBoundary()" value="绘制边界">
+    <select id='boundaries_area'>
+        <option value="上海市">上海市.txt</option>
+        <option value="广东省">广东省</option>
+        <option value="山西省">山西省</option>
+    </select>
+    <script type="text/javascript">
+        var map;
+        $(function () {
+            map = new BMap.Map("container");
+            map.centerAndZoom(new BMap.Point(116.403765, 39.914850), 5);
+            map.addControl(new BMap.NavigationControl({
+                type: BMAP_NAVIGATION_CONTROL_SMALL
+            }));
+            map.enableScrollWheelZoom();
+            $('#boundaries_area').bind('change',function(){
+                readBoundary($('#boundaries_area').val());
+            });
+        });
+
+        //设置边界
+        function setBoundary() {
+            var boundaryStr = $('#boundaries').val();
+            var boundaryArr=boundaryStr.split('|');
+            $.each(boundaryArr, function (index, item) {
+                var pointArr = item.split(';');
+                var line = [];
+                for (var i = 0; i < pointArr.length; i++) {
+                    var tempArr = pointArr[i].split(',');
+                    line.push(new BMap.Point(tempArr[0], tempArr[1]));
+                }
+                if (line.length > 0) {
+                    //创建多边形  
+                    var lay = new BMap.Polygon(line, {
+                        strokeColor: "#199ED8",
+                        strokeWeight: 2,
+                        strokeOpacity: 1,
+                        fillColor: "#199ED8",
+                        fillOpacity: "0.3",
+                        enableMassClear: false
+                    });
+                    map.addOverlay(lay); //添加到地图中
+                    map.centerAndZoom(getCenterPoint(line), 8);
+                }
+                
+            });
+        }
+
+         //获取区域中心坐标
+         function getCenterPoint(path) {
+            var x = 0.0;
+            var y = 0.0;
+            for (var i = 0; i < path.length; i++) {
+                x = x + parseFloat(path[i].lng);
+                y = y + parseFloat(path[i].lat);
+            }
+            x = x / path.length;
+            y = y / path.length;
+            return new BMap.Point(x, y);
+        }
+
+        function readBoundary(name){
+            var htmlobj=$.ajax({url:"p_boundary/"+ name +'.txt',async:false});
+             $('#boundaries').val(htmlobj.responseText);
+             setBoundary();
+        }
+    </script>
+</body>
+
+</html>
