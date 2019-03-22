@@ -7,13 +7,13 @@ import mysql.connector
 
 
 
-class syncdata:
+class SyncData:
     
     # 创建MONGODB数据库链接
     client = pymongo.MongoClient(host='139.219.136.96', port=27017)
     # 指定数据库
     mymongodb = client['yezi_fang']
-    region = mymongodb['region']
+    collection = mymongodb['region']
 
     mysqldb = mysql.connector.connect(
         host="localhost",       # 数据库主机地址
@@ -22,20 +22,27 @@ class syncdata:
         database="yezi_fang" #数据库名
     )
     cursor = mysqldb.cursor()
-
+    # init
+    def __init__(self):
+        pass
+        
+    # 获取region数据
     def getRegion(self):
-        return self.region.find({})
+        return self.collection.find({})
 
-    def insertRegion(self,item):
-        sql = "INSERT INTO t_region (province_code, province_name, city_code, city_name, district_code, district_name, street_code, street_name, village_code, village_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
-        self.cursor.execute(sql, item)
-        self.mysqldb.commit()
+    # 同步region数据
+    def SyncRegion(self):
+        regionData=self.getRegion()
+        for p in regionData:
+            item=dict(p)
+            # 去掉"_id" 列
+            item.pop('_id')
+            sql = "INSERT INTO sys_region (province_code, province_name, city_code, city_name, district_code, district_name, street_code, street_name, village_code, village_name) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+            self.cursor.execute(sql, tuple(item.values()))
+            self.mysqldb.commit()
 
-m = syncdata()
-regionData=m.getRegion()
-for p in regionData:
-    item=dict(p)
-    # 去掉"_id" 列
-    item.pop('_id')
-    m.insertRegion(tuple(item.values()))
-m.mysqldb.close()
+# 初始化
+obj = SyncData()
+# 同步region区域数据
+obj.SyncRegion()
+
