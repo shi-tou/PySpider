@@ -24,13 +24,14 @@ class RegionSpider(scrapy.Spider):
     main_url = 'http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/'
 
     def start_requests(self):
-        yield scrapy.Request(url=self.main_url + 'index.html', callback=self.parse)
+        # yield scrapy.Request(url=self.main_url + 'index.html', callback=self.parse)
+        yield scrapy.Request(url=self.main_url + 'index.html', callback=self.parse_region_for_no_district)
 
     def parse(self, response):
         for sel in response.css('.provincetr a'):
             source_url = self.main_url + sel.css('::attr(href)').extract_first()
             province_name = sel.css('::text').extract_first()
-            province_code= source_url.split('/')[-1].replace('.html', '')
+            province_code= source_url.split('/')[-1].replace('.html', '')           
             meta_data = {
                 'province_name': province_name,
                 'province_code': province_code
@@ -44,7 +45,7 @@ class RegionSpider(scrapy.Spider):
             city_code = sel.css('td:nth-child(1) a::text').extract_first()
             source_url = sel.css('td:nth-child(1) a::attr(href)').extract_first()
             if source_url is None:
-                continue
+                continue                       
             meta_data['city_name'] = city_name
             meta_data['city_code'] = city_code
             yield scrapy.Request(url=response.url[:response.url.rfind("/")+1] +source_url, meta=meta_data, callback=self.parse_district)
@@ -60,7 +61,7 @@ class RegionSpider(scrapy.Spider):
             meta_data['district_name'] = district_name
             meta_data['district_code'] = district_code
             yield scrapy.Request(url=response.url[:response.url.rfind("/")+1] + source_url, meta=meta_data, callback=self.parse_street)
-
+        
     def parse_street(self, response):
         meta_data = response.meta
         for sel in response.css('.towntr'):
@@ -92,3 +93,25 @@ class RegionSpider(scrapy.Spider):
             item['village_name'] = village_name
             items.append(item)
         return items
+
+    # 特殊处理城市没有区的问题
+    # 东莞：http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/44/4419.html?a
+    # 中山：http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/44/4420.html?b
+    def parse_region_for_no_district(self, response):        
+        # meta_data = {
+        #     'province_name': '广东省',
+        #     'province_code': '44',
+        #     'city_code' : '441900000000',
+        #     'city_name' : '东莞市',
+        #     'district_code' : '441900100000',
+        #     'district_name' : '市辖区',
+        # }
+        meta_data = {
+            'province_name': '广东省',
+            'province_code': '44',
+            'city_code' : '442000000000',
+            'city_name' : '中山市',
+            'district_code' : '442000100000',
+            'district_name' : '市辖区',
+        }
+        yield scrapy.Request(url='http://www.stats.gov.cn/tjsj/tjbz/tjyqhdmhcxhfdm/2018/44/4420.html?b', meta=meta_data, callback=self.parse_street)
