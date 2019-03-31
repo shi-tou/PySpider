@@ -10,7 +10,7 @@ import requests
 
 
 class BudejiePipeline(object):
-    base_dir = "D:\\budejie\\"
+    base_dir = "F:\\budejie\\"
     header = {
         'USER-Agent': 'User-Agent:Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
         'Cookie': 'b963ef2d97e050aaf90fd5fab8e78633',

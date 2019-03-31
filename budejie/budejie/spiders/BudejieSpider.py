@@ -23,7 +23,7 @@ class BudejieSpider(scrapy.Spider):
 
     def start_requests(self):
         url = 'http://www.budejie.com/'
-        for i in range(101, 150):
+        for i in range(1, 10):
             yield scrapy.Request(url=url + str(i + 1), callback=self.parse)
 
     # 解析【不得姐】列表
